@@ -41,4 +41,7 @@ public class CreateEventRequest {
     
     private String imageUrl;
     private String tags;
+    
+    // Default constructor for JSON deserialization
+    public CreateEventRequest() {}
 }

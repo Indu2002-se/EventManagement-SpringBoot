@@ -26,91 +26,167 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserDto getUserById(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         return new UserDto(user);
     }
 
     @Transactional
     public UserDto registerUser(UserDto userDto) {
-        // Check if username already exists
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+        try {
+            // Validate input
+            if (userDto.getUsername() == null || userDto.getUsername().trim().isEmpty()) {
+                throw new RuntimeException("Username cannot be null or empty");
+            }
+            
+            if (userDto.getEmail() == null || userDto.getEmail().trim().isEmpty()) {
+                throw new RuntimeException("Email cannot be null or empty");
+            }
+            
+            if (userDto.getFirstName() == null || userDto.getFirstName().trim().isEmpty()) {
+                throw new RuntimeException("First name cannot be null or empty");
+            }
+            
+            if (userDto.getLastName() == null || userDto.getLastName().trim().isEmpty()) {
+                throw new RuntimeException("Last name cannot be null or empty");
+            }
+            
+            if (userDto.getRole() == null) {
+                throw new RuntimeException("User role cannot be null");
+            }
+
+            // Check if username already exists
+            if (userRepository.existsByUsername(userDto.getUsername().trim())) {
+                throw new RuntimeException("Username '" + userDto.getUsername() + "' already exists");
+            }
+
+            // Check if email already exists
+            if (userRepository.existsByEmail(userDto.getEmail().trim())) {
+                throw new RuntimeException("Email '" + userDto.getEmail() + "' already exists");
+            }
+
+            User user = new User();
+            user.setUsername(userDto.getUsername().trim());
+            user.setEmail(userDto.getEmail().trim());
+            user.setPassword(userDto.getPassword() != null ? userDto.getPassword().trim() : "defaultPassword"); // Note: should be encrypted
+            user.setFirstName(userDto.getFirstName().trim());
+            user.setLastName(userDto.getLastName().trim());
+            user.setPhoneNumber(userDto.getPhoneNumber() != null ? userDto.getPhoneNumber().trim() : null);
+            user.setRole(userDto.getRole());
+            user.setIsActive(userDto.getIsActive() != null ? userDto.getIsActive() : true);
+            user.setProfileImageUrl(userDto.getProfileImageUrl());
+
+            User savedUser = userRepository.save(user);
+            return new UserDto(savedUser);
+            
+        } catch (RuntimeException e) {
+            throw e; // Re-throw validation errors
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to register user: " + e.getMessage(), e);
         }
-
-        // Check if email already exists
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
-        }
-
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
-        // Note: password should be set separately and encrypted
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setRole(userDto.getRole());
-        user.setIsActive(userDto.getIsActive());
-
-        User savedUser = userRepository.save(user);
-        return new UserDto(savedUser);
     }
 
     @Transactional
     public UserDto updateUser(Long userId, UserDto userDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
-        // Check if new username conflicts with existing users
-        if (!user.getUsername().equals(userDto.getUsername()) &&
-            userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            // Validate input
+            if (userDto.getUsername() == null || userDto.getUsername().trim().isEmpty()) {
+                throw new RuntimeException("Username cannot be null or empty");
+            }
+            
+            if (userDto.getEmail() == null || userDto.getEmail().trim().isEmpty()) {
+                throw new RuntimeException("Email cannot be null or empty");
+            }
+            
+            if (userDto.getFirstName() == null || userDto.getFirstName().trim().isEmpty()) {
+                throw new RuntimeException("First name cannot be null or empty");
+            }
+            
+            if (userDto.getLastName() == null || userDto.getLastName().trim().isEmpty()) {
+                throw new RuntimeException("Last name cannot be null or empty");
+            }
+
+            // Check if new username conflicts with existing users
+            if (!user.getUsername().equals(userDto.getUsername().trim()) &&
+                userRepository.existsByUsername(userDto.getUsername().trim())) {
+                throw new RuntimeException("Username '" + userDto.getUsername() + "' already exists");
+            }
+
+            // Check if new email conflicts with existing users
+            if (!user.getEmail().equals(userDto.getEmail().trim()) &&
+                userRepository.existsByEmail(userDto.getEmail().trim())) {
+                throw new RuntimeException("Email '" + userDto.getEmail() + "' already exists");
+            }
+
+            user.setUsername(userDto.getUsername().trim());
+            user.setEmail(userDto.getEmail().trim());
+            user.setFirstName(userDto.getFirstName().trim());
+            user.setLastName(userDto.getLastName().trim());
+            user.setPhoneNumber(userDto.getPhoneNumber() != null ? userDto.getPhoneNumber().trim() : null);
+            user.setRole(userDto.getRole() != null ? userDto.getRole() : user.getRole());
+            user.setIsActive(userDto.getIsActive() != null ? userDto.getIsActive() : user.getIsActive());
+            user.setProfileImageUrl(userDto.getProfileImageUrl());
+
+            User updatedUser = userRepository.save(user);
+            return new UserDto(updatedUser);
+            
+        } catch (RuntimeException e) {
+            throw e; // Re-throw validation errors
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update user: " + e.getMessage(), e);
         }
-
-        // Check if new email conflicts with existing users
-        if (!user.getEmail().equals(userDto.getEmail()) &&
-            userRepository.findByEmail(userDto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
-        }
-
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setRole(userDto.getRole());
-        user.setIsActive(userDto.getIsActive());
-
-        User updatedUser = userRepository.save(user);
-        return new UserDto(updatedUser);
     }
 
     @Transactional
     public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        userRepository.delete(user);
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+            userRepository.delete(user);
+        } catch (RuntimeException e) {
+            throw e; // Re-throw validation errors
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user: " + e.getMessage(), e);
+        }
     }
 
     @Transactional(readOnly = true)
     public List<UserDto> getUsersByRole(User.UserRole role) {
-        List<User> users = userRepository.findAll().stream()
-                .filter(user -> user.getRole() == role)
-                .collect(Collectors.toList());
-        return users.stream().map(UserDto::new).collect(Collectors.toList());
+        try {
+            List<User> users = userRepository.findAll().stream()
+                    .filter(user -> user.getRole() == role)
+                    .collect(Collectors.toList());
+            return users.stream().map(UserDto::new).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get users by role: " + e.getMessage(), e);
+        }
     }
 
     @Transactional(readOnly = true)
     public UserDto getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return new UserDto(user);
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
+            return new UserDto(user);
+        } catch (RuntimeException e) {
+            throw e; // Re-throw validation errors
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get user by username: " + e.getMessage(), e);
+        }
     }
 
     @Transactional(readOnly = true)
     public UserDto getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return new UserDto(user);
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+            return new UserDto(user);
+        } catch (RuntimeException e) {
+            throw e; // Re-throw validation errors
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get user by email: " + e.getMessage(), e);
+        }
     }
 }

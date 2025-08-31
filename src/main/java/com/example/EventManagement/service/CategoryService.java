@@ -26,70 +26,96 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public CategoryDto getCategoryById(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + categoryId));
         return new CategoryDto(category);
     }
 
     @Transactional
     public CategoryDto createCategory(CategoryDto categoryDto) {
+        // Validate input
+        if (categoryDto.getName() == null || categoryDto.getName().trim().isEmpty()) {
+            throw new RuntimeException("Category name cannot be null or empty");
+        }
+        
         // Check if category name already exists
-        if (categoryRepository.existsByName(categoryDto.getName())) {
-            throw new RuntimeException("Category name already exists");
+        if (categoryRepository.existsByName(categoryDto.getName().trim())) {
+            throw new RuntimeException("Category name '" + categoryDto.getName() + "' already exists");
         }
 
         Category category = new Category();
-        category.setName(categoryDto.getName());
-        category.setDescription(categoryDto.getDescription());
-        category.setIcon(categoryDto.getIcon());
-        category.setColor(categoryDto.getColor());
+        category.setName(categoryDto.getName().trim());
+        category.setDescription(categoryDto.getDescription() != null ? categoryDto.getDescription().trim() : null);
+        category.setIcon(categoryDto.getIcon() != null ? categoryDto.getIcon().trim() : null);
+        category.setColor(categoryDto.getColor() != null ? categoryDto.getColor().trim() : null);
 
-        Category savedCategory = categoryRepository.save(category);
-        return new CategoryDto(savedCategory);
+        try {
+            Category savedCategory = categoryRepository.save(category);
+            return new CategoryDto(savedCategory);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create category: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
     public CategoryDto updateCategory(Long categoryId, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + categoryId));
 
-        // Check if new name conflicts with existing categories
-        if (!category.getName().equals(categoryDto.getName()) &&
-            categoryRepository.existsByName(categoryDto.getName())) {
-            throw new RuntimeException("Category name already exists");
+        // Validate input
+        if (categoryDto.getName() == null || categoryDto.getName().trim().isEmpty()) {
+            throw new RuntimeException("Category name cannot be null or empty");
         }
 
-        category.setName(categoryDto.getName());
-        category.setDescription(categoryDto.getDescription());
-        category.setIcon(categoryDto.getIcon());
-        category.setColor(categoryDto.getColor());
+        // Check if new name conflicts with existing categories
+        if (!category.getName().equals(categoryDto.getName().trim()) &&
+            categoryRepository.existsByName(categoryDto.getName().trim())) {
+            throw new RuntimeException("Category name '" + categoryDto.getName() + "' already exists");
+        }
 
-        Category updatedCategory = categoryRepository.save(category);
-        return new CategoryDto(updatedCategory);
+        category.setName(categoryDto.getName().trim());
+        category.setDescription(categoryDto.getDescription() != null ? categoryDto.getDescription().trim() : null);
+        category.setIcon(categoryDto.getIcon() != null ? categoryDto.getIcon().trim() : null);
+        category.setColor(categoryDto.getColor() != null ? categoryDto.getColor().trim() : null);
+
+        try {
+            Category updatedCategory = categoryRepository.save(category);
+            return new CategoryDto(updatedCategory);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update category: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
     public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + categoryId));
         
         // Check if category has events
         if (category.getEvents() != null && !category.getEvents().isEmpty()) {
-            throw new RuntimeException("Cannot delete category with existing events");
+            throw new RuntimeException("Cannot delete category '" + category.getName() + "' with existing events. Please remove or reassign events first.");
         }
         
-        categoryRepository.delete(category);
+        try {
+            categoryRepository.delete(category);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete category: " + e.getMessage(), e);
+        }
     }
 
     @Transactional(readOnly = true)
     public List<CategoryDto> getCategoriesByNameContaining(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return getAllCategories();
+        }
+        
         List<Category> categories = categoryRepository.findAll().stream()
-                .filter(cat -> cat.getName().toLowerCase().contains(name.toLowerCase()))
+                .filter(cat -> cat.getName().toLowerCase().contains(name.toLowerCase().trim()))
                 .collect(Collectors.toList());
         return categories.stream().map(CategoryDto::new).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public boolean existsByName(String name) {
-        return categoryRepository.existsByName(name);
+        return name != null && !name.trim().isEmpty() && categoryRepository.existsByName(name.trim());
     }
 }

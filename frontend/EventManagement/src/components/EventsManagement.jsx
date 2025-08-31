@@ -14,6 +14,7 @@ const EventsManagement = () => {
     maxCapacity: '', ticketPrice: '', categoryId: '', imageUrl: '', tags: ''
   });
   const [error, setError] = useState('');
+  const [creatingEvent, setCreatingEvent] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -26,8 +27,13 @@ const EventsManagement = () => {
       setError('');
       const response = await eventAPI.getAllEvents(0, 50);
       console.log('Events response:', response);
-      // Handle both paginated and non-paginated responses
-      const eventsData = response.data?.content || response.data || [];
+      console.log('Response data:', response.data);
+      console.log('Response data type:', typeof response.data);
+      // The /all endpoint returns a List directly, not a Page object
+      const eventsData = response.data || [];
+      console.log('Events data:', eventsData);
+      console.log('Events data type:', typeof eventsData);
+      console.log('Events data is array:', Array.isArray(eventsData));
       setEvents(Array.isArray(eventsData) ? eventsData : []);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -52,7 +58,15 @@ const EventsManagement = () => {
 
   const handleCreateEvent = async (e) => {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (creatingEvent) {
+      console.log('Event creation already in progress, ignoring duplicate submission');
+      return;
+    }
+    
     try {
+      setCreatingEvent(true);
       setError('');
       
       // Validate required fields
@@ -75,7 +89,15 @@ const EventsManagement = () => {
         tags: formData.tags || ''
       };
 
+      console.log('=== EVENT CREATION DEBUG ===');
       console.log('Creating event with data:', eventData);
+      console.log('Using organizerId:', 1);
+      console.log('Event data type:', typeof eventData);
+      console.log('Event data keys:', Object.keys(eventData));
+      console.log('Start date type:', typeof eventData.startDate);
+      console.log('End date type:', typeof eventData.endDate);
+      console.log('Category ID type:', typeof eventData.categoryId);
+      console.log('===========================');
       
       // Create event (using admin user ID 1 for now)
       const response = await eventAPI.createEvent(eventData, 1);
@@ -89,8 +111,32 @@ const EventsManagement = () => {
       alert('Event created successfully!');
       
     } catch (error) {
+      console.error('=== ERROR DETAILS ===');
       console.error('Error creating event:', error);
-      setError(`Failed to create event: ${error.response?.data?.message || error.message || 'Unknown error'}`);
+      console.error('Error type:', typeof error);
+      console.error('Error constructor:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error response status:', error.response?.status);
+      console.error('Error config:', error.config);
+      console.error('Error config URL:', error.config?.url);
+      console.error('Error config method:', error.config?.method);
+      console.error('Error config data:', error.config?.data);
+      console.error('=====================');
+      
+      let errorMessage = 'Failed to create event: ';
+      if (error.response?.data?.message) {
+        errorMessage += error.response.data.message;
+      } else if (error.message) {
+        errorMessage += error.message;
+      } else {
+        errorMessage += 'Unknown error occurred';
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setCreatingEvent(false);
     }
   };
 
@@ -207,13 +253,42 @@ const EventsManagement = () => {
         <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827' }}>
           Events ({events.length})
         </h2>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="btn btn-primary"
-        >
-          <Plus size={16} />
-          Create Event
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            onClick={async () => {
+              try {
+                console.log('Testing API call directly...');
+                const response = await eventAPI.createEvent({
+                  title: 'Debug Test Event',
+                  description: 'This is a debug test event',
+                  startDate: '2025-09-15T10:00:00',
+                  endDate: '2025-09-15T12:00:00',
+                  location: 'Debug Location',
+                  maxCapacity: 50,
+                  ticketPrice: 15.0,
+                  categoryId: 1
+                }, 1);
+                console.log('Direct API call successful:', response);
+                alert('Direct API call successful! Check console for details.');
+                fetchEvents();
+              } catch (error) {
+                console.error('Direct API call failed:', error);
+                alert('Direct API call failed! Check console for details.');
+              }
+            }}
+            className="btn btn-secondary"
+            style={{ fontSize: '12px', padding: '8px 12px' }}
+          >
+            Test API
+          </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="btn btn-primary"
+          >
+            <Plus size={16} />
+            Create Event
+          </button>
+        </div>
       </div>
 
       <div className="table-container">
@@ -442,13 +517,15 @@ const EventsManagement = () => {
                 <button
                   type="submit"
                   className="btn btn-primary"
+                  disabled={creatingEvent}
                 >
-                  Create Event
+                  {creatingEvent ? 'Creating Event...' : 'Create Event'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
                   className="btn btn-secondary"
+                  disabled={creatingEvent}
                 >
                   Cancel
                 </button>

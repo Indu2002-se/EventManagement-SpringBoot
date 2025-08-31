@@ -34,29 +34,71 @@ api.interceptors.response.use(
   }
 );
 
+// Helper function to safely construct URLs with parameters
+const buildUrl = (endpoint, params = {}) => {
+  const url = new URL(endpoint, API_BASE_URL);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '') {
+      url.searchParams.set(key, value);
+    }
+  });
+  return url.pathname + url.search;
+};
+
 export const eventAPI = {
   getAllEvents: (page = 0, size = 10) =>
-    api.get(`/events?page=${page}&size=${size}`),
+    api.get('/events/all'),
   getEventById: (eventId) =>
     api.get(`/events/${eventId}`),
-  createEvent: (eventData, organizerId) =>
-    api.post(`/events?organizerId=${organizerId}`, eventData),
-  updateEvent: (eventId, eventData, organizerId) =>
-    api.put(`/events/${eventId}?organizerId=${organizerId}`, eventData),
-  deleteEvent: (eventId, organizerId) =>
-    api.delete(`/events/${eventId}?organizerId=${organizerId}`),
-  publishEvent: (eventId, organizerId) =>
-    api.patch(`/events/${eventId}/publish?organizerId=${organizerId}`),
-  cancelEvent: (eventId, organizerId) =>
-    api.patch(`/events/${eventId}/cancel?organizerId=${organizerId}`),
+  createEvent: (eventData, organizerId) => {
+    // Ensure organizerId is a clean number
+    const cleanOrganizerId = parseInt(organizerId);
+    if (isNaN(cleanOrganizerId)) {
+      throw new Error('Invalid organizerId: must be a valid number');
+    }
+    return api.post(buildUrl('/events', { organizerId: cleanOrganizerId }), eventData);
+  },
+  updateEvent: (eventId, eventData, organizerId) => {
+    const cleanOrganizerId = parseInt(organizerId);
+    if (isNaN(cleanOrganizerId)) {
+      throw new Error('Invalid organizerId: must be a valid number');
+    }
+    return api.put(buildUrl(`/events/${eventId}`, { organizerId: cleanOrganizerId }), eventData);
+  },
+  deleteEvent: (eventId, organizerId) => {
+    const cleanOrganizerId = parseInt(organizerId);
+    if (isNaN(cleanOrganizerId)) {
+      throw new Error('Invalid organizerId: must be a valid number');
+    }
+    return api.delete(buildUrl(`/events/${eventId}`, { organizerId: cleanOrganizerId }));
+  },
+  publishEvent: (eventId, organizerId) => {
+    const cleanOrganizerId = parseInt(organizerId);
+    if (isNaN(cleanOrganizerId)) {
+      throw new Error('Invalid organizerId: must be a valid number');
+    }
+    return api.patch(buildUrl(`/events/${eventId}/publish`, { organizerId: cleanOrganizerId }));
+  },
+  cancelEvent: (eventId, organizerId) => {
+    const cleanOrganizerId = parseInt(organizerId);
+    if (isNaN(cleanOrganizerId)) {
+      throw new Error('Invalid organizerId: must be a valid number');
+    }
+    return api.patch(buildUrl(`/events/${eventId}/cancel`, { organizerId: cleanOrganizerId }));
+  },
   searchEvents: (searchTerm, page = 0, size = 10) =>
-    api.get(`/events/search?searchTerm=${searchTerm}&page=${page}&size=${size}`),
+    api.get(buildUrl('/events/search', { searchTerm, page, size })),
   getUpcomingEvents: () =>
     api.get('/events/upcoming'),
   getEventsByCategory: (categoryId, page = 0, size = 10) =>
-    api.get(`/events/category/${categoryId}?page=${page}&size=${size}`),
-  getEventsByOrganizer: (organizerId, page = 0, size = 10) =>
-    api.get(`/events/organizer/${organizerId}?page=${page}&size=${size}`),
+    api.get(buildUrl(`/events/category/${categoryId}`, { page, size })),
+  getEventsByOrganizer: (organizerId, page = 0, size = 10) => {
+    const cleanOrganizerId = parseInt(organizerId);
+    if (isNaN(cleanOrganizerId)) {
+      throw new Error('Invalid organizerId: must be a valid number');
+    }
+    return api.get(buildUrl(`/events/organizer/${cleanOrganizerId}`, { page, size }));
+  },
   getEventsWithAvailableCapacity: () =>
     api.get('/events/available'),
 };
@@ -80,7 +122,7 @@ export const categoryAPI = {
 
 export const registrationAPI = {
   registerForEvent: (eventId, userId) =>
-    api.post(`/registrations?eventId=${eventId}&userId=${userId}`),
+    api.post(buildUrl('/registrations', { eventId, userId })),
   getRegistrationsByEvent: (eventId) =>
     api.get(`/registrations/event/${eventId}`),
   getRegistrationsByUser: (userId) =>

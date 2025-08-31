@@ -1,5 +1,6 @@
 package com.example.EventManagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,9 +48,11 @@ public class User {
     private String profileImageUrl;
     
     @OneToMany(mappedBy = "organizer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<Event> organizedEvents = new HashSet<>();
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<EventRegistration> registrations = new HashSet<>();
     
     @CreationTimestamp

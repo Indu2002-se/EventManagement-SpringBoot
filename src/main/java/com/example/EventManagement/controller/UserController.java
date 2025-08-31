@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,8 +20,52 @@ public class UserController {
     
     @PostMapping("/register")
     public ResponseEntity<UserDto> registerUser(@Valid @RequestBody UserDto userDto) {
-        UserDto registeredUser = userService.registerUser(userDto);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        try {
+            UserDto registeredUser = userService.registerUser(userDto);
+            return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        } catch (Exception e) {
+            // Log the error for debugging
+            System.err.println("Error registering user: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
+    @PostMapping("/test")
+    public ResponseEntity<Map<String, Object>> testUserCreation() {
+        Map<String, Object> response = new java.util.HashMap<>();
+        
+        try {
+            // Test with a simple user
+            UserDto testUser = new UserDto();
+            testUser.setUsername("testuser");
+            testUser.setEmail("test@example.com");
+            testUser.setPassword("password123");
+            testUser.setFirstName("Test");
+            testUser.setLastName("User");
+            testUser.setRole(com.example.EventManagement.model.User.UserRole.USER);
+            testUser.setIsActive(true);
+            
+            UserDto savedUser = userService.registerUser(testUser);
+            
+            response.put("success", true);
+            response.put("message", "Test user created successfully");
+            response.put("user", savedUser);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to create test user");
+            response.put("error", e.getMessage());
+            response.put("errorType", e.getClass().getSimpleName());
+            
+            // Log the full error for debugging
+            System.err.println("Test user creation failed: " + e.getMessage());
+            e.printStackTrace();
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
     
     @GetMapping

@@ -10,7 +10,9 @@ import {
   Menu, 
   X,
   LogOut,
-  User
+  User,
+  Search,
+  Bell
 } from 'lucide-react';
 
 const DashboardLayout = () => {
@@ -38,7 +40,7 @@ const DashboardLayout = () => {
       {/* Mobile sidebar */}
       <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h1 className="sidebar-title">Event Manager</h1>
+          <h1 className="sidebar-title">EventPro</h1>
           <button
             onClick={() => setSidebarOpen(false)}
             className="sidebar-close"
@@ -67,7 +69,7 @@ const DashboardLayout = () => {
       {/* Desktop sidebar */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <h1 className="sidebar-title">Event Manager</h1>
+          <h1 className="sidebar-title">EventPro</h1>
         </div>
         <nav className="sidebar-nav">
           {navigation.map((item) => {
@@ -98,7 +100,22 @@ const DashboardLayout = () => {
             <Menu size={24} />
           </button>
 
+          <div className="header-left">
+            <div className="welcome-message">Welcome back, Admin 👋</div>
+            <h1 className="page-title">Dashboard</h1>
+          </div>
+
           <div className="header-right">
+            {/* Search icon */}
+            <div className="header-icon">
+              <Search size={20} />
+            </div>
+            
+            {/* Notification bell */}
+            <div className="header-icon">
+              <Bell size={20} />
+            </div>
+            
             {/* Profile dropdown */}
             <button className="user-menu">
               <div className="user-avatar">
@@ -108,7 +125,7 @@ const DashboardLayout = () => {
             </button>
             
             {/* Logout button */}
-            <button className="sidebar-close">
+            <button className="header-icon">
               <LogOut size={20} />
             </button>
           </div>

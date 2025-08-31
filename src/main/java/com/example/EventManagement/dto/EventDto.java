@@ -26,6 +26,9 @@ public class EventDto {
     private LocalDateTime updatedAt;
     private Integer currentRegistrations;
     
+    // Default constructor for JSON deserialization
+    public EventDto() {}
+    
     // Constructor to convert from Entity
     public EventDto(Event event) {
         this.id = event.getId();
@@ -52,8 +55,16 @@ public class EventDto {
             this.organizerName = event.getOrganizer().getFirstName() + " " + event.getOrganizer().getLastName();
         }
         
-        if (event.getRegistrations() != null) {
-            this.currentRegistrations = event.getRegistrations().size();
+        // Safely handle registrations to avoid LazyInitializationException
+        try {
+            if (event.getRegistrations() != null) {
+                this.currentRegistrations = event.getRegistrations().size();
+            } else {
+                this.currentRegistrations = 0;
+            }
+        } catch (Exception e) {
+            // If we can't access registrations (lazy loading issue), set to 0
+            this.currentRegistrations = 0;
         }
     }
 }
