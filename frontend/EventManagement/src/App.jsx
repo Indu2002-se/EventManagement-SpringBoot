@@ -5,6 +5,8 @@ import DashboardOverview from './components/DashboardOverview';
 import EventsManagement from './components/EventsManagement';
 import UsersManagement from './components/UsersManagement';
 import CategoriesManagement from './components/CategoriesManagement';
+import RegistrationsManagement from './components/RegistrationsManagement';
+import Settings from './components/Settings';
 import './App.css';
 
 function App() {
@@ -18,8 +20,8 @@ function App() {
             <Route path="events" element={<EventsManagement />} />
             <Route path="users" element={<UsersManagement />} />
             <Route path="categories" element={<CategoriesManagement />} />
-            <Route path="registrations" element={<div className="p-6"><h1 className="text-2xl font-bold">Registrations Management</h1><p>Registrations management component will be loaded here</p></div>} />
-            <Route path="settings" element={<div className="p-6"><h1 className="text-2xl font-bold">Settings</h1><p>Settings component will be loaded here</p></div>} />
+            <Route path="registrations" element={<RegistrationsManagement />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </div>

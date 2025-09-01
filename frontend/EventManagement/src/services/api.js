@@ -129,6 +129,8 @@ export const registrationAPI = {
     api.get(`/registrations/user/${userId}`),
   getRegistrationById: (registrationId) =>
     api.get(`/registrations/${registrationId}`),
+  updateRegistration: (registrationId, registrationData) =>
+    api.put(`/registrations/${registrationId}`, registrationData),
   confirmRegistration: (registrationId) =>
     api.patch(`/registrations/${registrationId}/confirm`),
   cancelRegistration: (registrationId) =>
