@@ -4,6 +4,8 @@ import com.example.EventManagement.dto.CreateEventRequest;
 import com.example.EventManagement.dto.EventDto;
 import com.example.EventManagement.service.EventService;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,11 +21,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/events")
 @RequiredArgsConstructor
+@Tag(name = "Events", description = "Manage events lifecycle")
 public class EventController {
     
     private final EventService eventService;
     
     @PostMapping
+    @Operation(summary = "Create a new event")
     public ResponseEntity<EventDto> createEvent(
             @Valid @RequestBody CreateEventRequest request,
             @RequestParam Long organizerId) {
@@ -39,6 +43,7 @@ public class EventController {
     }
     
     @PostMapping("/test")
+    @Operation(summary = "Create a sample event (debug)")
     public ResponseEntity<Map<String, Object>> testEventCreation() {
         Map<String, Object> response = new java.util.HashMap<>();
         
@@ -89,6 +94,7 @@ public class EventController {
     }
     
     @GetMapping("/debug")
+    @Operation(summary = "Collect debug info for events")
     public ResponseEntity<Map<String, Object>> debugEventCreation() {
         Map<String, Object> response = new java.util.HashMap<>();
         
@@ -121,6 +127,7 @@ public class EventController {
     }
     
     @GetMapping("/all")
+    @Operation(summary = "List all events (no pagination)")
     public ResponseEntity<List<EventDto>> getAllEventsSimple() {
         try {
             // Get all events without pagination for testing
@@ -135,6 +142,7 @@ public class EventController {
     }
     
     @GetMapping("/search")
+    @Operation(summary = "Search events by term")
     public ResponseEntity<Page<EventDto>> searchEvents(
             @RequestParam String searchTerm,
             @RequestParam(defaultValue = "0") int page,
@@ -145,12 +153,14 @@ public class EventController {
     }
     
     @GetMapping("/upcoming")
+    @Operation(summary = "List upcoming events")
     public ResponseEntity<List<EventDto>> getUpcomingEvents() {
         List<EventDto> events = eventService.getUpcomingEvents();
         return ResponseEntity.ok(events);
     }
     
     @GetMapping("/category/{categoryId}")
+    @Operation(summary = "List events by category")
     public ResponseEntity<Page<EventDto>> getEventsByCategory(
             @PathVariable Long categoryId,
             @RequestParam(defaultValue = "0") int page,
@@ -161,6 +171,7 @@ public class EventController {
     }
     
     @GetMapping("/organizer/{organizerId}")
+    @Operation(summary = "List events by organizer")
     public ResponseEntity<Page<EventDto>> getEventsByOrganizer(
             @PathVariable Long organizerId,
             @RequestParam(defaultValue = "0") int page,
@@ -171,12 +182,14 @@ public class EventController {
     }
     
     @GetMapping("/available")
+    @Operation(summary = "List events with available seats")
     public ResponseEntity<List<EventDto>> getEventsWithAvailableCapacity() {
         List<EventDto> events = eventService.getEventsWithAvailableCapacity();
         return ResponseEntity.ok(events);
     }
     
     @GetMapping
+    @Operation(summary = "List events (paginated)")
     public ResponseEntity<Page<EventDto>> getAllEvents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -186,12 +199,14 @@ public class EventController {
     }
     
     @GetMapping("/{eventId}")
+    @Operation(summary = "Get event by id")
     public ResponseEntity<EventDto> getEventById(@PathVariable Long eventId) {
         EventDto event = eventService.getEventById(eventId);
         return ResponseEntity.ok(event);
     }
     
     @PutMapping("/{eventId}")
+    @Operation(summary = "Update an event")
     public ResponseEntity<EventDto> updateEvent(
             @PathVariable Long eventId,
             @Valid @RequestBody CreateEventRequest request,
@@ -201,6 +216,7 @@ public class EventController {
     }
     
     @PatchMapping("/{eventId}/publish")
+    @Operation(summary = "Publish an event")
     public ResponseEntity<EventDto> publishEvent(
             @PathVariable Long eventId,
             @RequestParam Long organizerId) {
@@ -209,6 +225,7 @@ public class EventController {
     }
     
     @PatchMapping("/{eventId}/cancel")
+    @Operation(summary = "Cancel an event")
     public ResponseEntity<EventDto> cancelEvent(
             @PathVariable Long eventId,
             @RequestParam Long organizerId) {
@@ -217,6 +234,7 @@ public class EventController {
     }
     
     @DeleteMapping("/{eventId}")
+    @Operation(summary = "Delete an event")
     public ResponseEntity<Void> deleteEvent(
             @PathVariable Long eventId,
             @RequestParam Long organizerId) {

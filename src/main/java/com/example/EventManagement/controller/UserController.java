@@ -3,6 +3,8 @@ package com.example.EventManagement.controller;
 import com.example.EventManagement.dto.UserDto;
 import com.example.EventManagement.service.UserService;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +16,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Tag(name = "Users", description = "Manage users")
 public class UserController {
     
     private final UserService userService;
     
     @PostMapping("/register")
+    @Operation(summary = "Register a new user")
     public ResponseEntity<UserDto> registerUser(@Valid @RequestBody UserDto userDto) {
         try {
             UserDto registeredUser = userService.registerUser(userDto);
@@ -32,6 +36,7 @@ public class UserController {
     }
     
     @PostMapping("/test")
+    @Operation(summary = "Create sample user (debug)")
     public ResponseEntity<Map<String, Object>> testUserCreation() {
         Map<String, Object> response = new java.util.HashMap<>();
         
@@ -69,18 +74,21 @@ public class UserController {
     }
     
     @GetMapping
+    @Operation(summary = "List all users")
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<UserDto> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
     
     @GetMapping("/{userId}")
+    @Operation(summary = "Get user by id")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long userId) {
         UserDto user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
     
     @PutMapping("/{userId}")
+    @Operation(summary = "Update a user")
     public ResponseEntity<UserDto> updateUser(
             @PathVariable Long userId,
             @Valid @RequestBody UserDto userDto) {
@@ -89,12 +97,14 @@ public class UserController {
     }
     
     @DeleteMapping("/{userId}")
+    @Operation(summary = "Delete a user")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
     
     @GetMapping("/{userId}/events")
+    @Operation(summary = "List events for a user (stub)")
     public ResponseEntity<List<UserDto>> getUserEvents(@PathVariable Long userId) {
         // This would return events organized by the user
         return ResponseEntity.ok().build();

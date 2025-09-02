@@ -3,6 +3,8 @@ package com.example.EventManagement.controller;
 import com.example.EventManagement.dto.CategoryDto;
 import com.example.EventManagement.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +16,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
+@Tag(name = "Categories", description = "Manage event categories")
 public class CategoryController {
     
     private final CategoryService categoryService;
     
     @PostMapping
+    @Operation(summary = "Create a new category")
     public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
         try {
             CategoryDto savedCategory = categoryService.createCategory(categoryDto);
@@ -32,6 +36,7 @@ public class CategoryController {
     }
     
     @PostMapping("/test")
+    @Operation(summary = "Create sample category (debug)")
     public ResponseEntity<Map<String, Object>> testCategoryCreation() {
         Map<String, Object> response = new java.util.HashMap<>();
         
@@ -66,18 +71,21 @@ public class CategoryController {
     }
     
     @GetMapping
+    @Operation(summary = "List all categories")
     public ResponseEntity<List<CategoryDto>> getAllCategories() {
         List<CategoryDto> categories = categoryService.getAllCategories();
         return ResponseEntity.ok(categories);
     }
     
     @GetMapping("/{categoryId}")
+    @Operation(summary = "Get category by id")
     public ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long categoryId) {
         CategoryDto category = categoryService.getCategoryById(categoryId);
         return ResponseEntity.ok(category);
     }
     
     @PutMapping("/{categoryId}")
+    @Operation(summary = "Update a category")
     public ResponseEntity<CategoryDto> updateCategory(
             @PathVariable Long categoryId,
             @Valid @RequestBody CategoryDto categoryDto) {
@@ -86,6 +94,7 @@ public class CategoryController {
     }
     
     @DeleteMapping("/{categoryId}")
+    @Operation(summary = "Delete a category")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId) {
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
